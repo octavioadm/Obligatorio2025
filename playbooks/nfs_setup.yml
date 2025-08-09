@@ -1,0 +1,19 @@
+---
+- name: Play para la instalacion y configuracion inicial de webserver
+  hosts: webserver
+  become: yes
+
+  tasks: 
+
+  - name: El paquete httpd tiene que estar instalado
+    ansible.builtin.dnf:
+      name: httpd
+      state: present
+
+  - name: El servicio httpd iniciado y habilitado
+    ansible.builtin.systemd_service:
+      name: httpd
+      enable: true
+      state: started
+
+  - 
