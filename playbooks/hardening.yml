@@ -1,0 +1,89 @@
+---
+
+- name: Playbook para hardening en servidor Ubuntu
+  hosts : Ubuntu
+  become: yes
+
+  tasks:
+
+   - name: Actualizacion de paquetes
+     ansible.builtin.apt:
+      name: "*"
+      state: latest
+      update_cache: true
+     notify: Restart server
+
+   - name: Instalacion de paquetes
+     ansible.builtin.apt:
+      upgrade: dist
+
+   - name: Verificar ufw instalado
+     ansible.builtin.apt:
+      name: ufw
+      state: present
+  
+   - name: Bloqueo trafico entrante
+     community.general.ufw:
+      state: enabled
+      rule: deny
+      direction: in
+
+   - name: Permitir SSH
+     community.general.ufw:
+      rule: allow
+      port: 22
+      proto: tcp
+  
+   - name: No permitir login como root
+     ansible.builtin.lineinfile:
+      path: /etc/ssh/sshd_config
+      insertafter: '^#PermitRootLogin'
+      line: PermitRootLogin no
+     notify: Reiniciar SSH
+
+   - name: Forzar autenticacion solo por clave publica
+     ansible.builtin.lineinfile:
+      path: /etc/ssh/sshd_config
+      regexp: '^#?PasswordAuthentication\s+.*'
+      line: 'PasswordAuthentication no'
+      state: present
+     notify: Reiniciar SSH
+
+   - name: Instalar fail2ban
+     ansible.builtin.apt:
+      name: fail2ban
+      state: present
+
+   - name: Habilitar y activar fail2ban
+     ansible.builtin.systemd_service:
+      name: fail2ban
+      state: started
+      enabled: yes
+      
+   - name: Configurar fail2ban para SSH
+     ansible.builtin.copy:
+      dest: /etc/fail2ban/jail.local
+      content: |
+       [sshd]
+       enabled = true
+       port = ssh
+       logpath = %(sshd_log)s
+       backend = systemd
+       maxretry = 3
+     notify : Reiniciar fail2ban
+
+
+  handlers:
+
+   - name: Restart server
+     ansible.builtin.reboot:
+
+   - name: Reiniciar SSH
+     ansible.builtin.systemd_service:
+      name: ssh
+      state: restarted
+   
+   - name: Reiniciar fail2ban
+     ansible.builtin.systemd_service:
+      name: fail2ban
+      state: restarted
