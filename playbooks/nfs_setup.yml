@@ -1,19 +1,49 @@
 ---
-- name: Play para la instalacion y configuracion inicial de webserver
-  hosts: webserver
+
+- name: Playbook para configurar servidor NFS en CentOS
+  hosts: centos
   become: yes
+
+  vars:
+    var_nfs_shared: /var/nfs_shared
+    var_nfs_export: "/var/nfs_shared * (rw,sync,no_root_squash,no_subtree_check)"
 
   tasks: 
 
-  - name: El paquete httpd tiene que estar instalado
+  - name: Instalacion paquete NFS
     ansible.builtin.dnf:
-      name: httpd
+      name: nfs-utils
       state: present
 
-  - name: El servicio httpd iniciado y habilitado
+  - name: Verificar servicio NFS habilitado e iniciado
     ansible.builtin.systemd_service:
-      name: httpd
-      enable: true
+      name: nfs-server
+      enabled: true
       state: started
 
-  - 
+  - name: Habilitar puerto 2049 en firewall
+    ansible.posix.firewalld:
+      port: 2049/tcp
+      permanent: true
+      state: enabled
+      immediate: true
+
+  - name: Carpeta compartida
+    ansible.builtin.file:
+      path: "{{var_nfs_shared}}"
+      state: directory
+      owner: nobody
+      group: nobody
+      mode: '0777'
+
+  - name: Garantiza que la linea de exportacion exista en el archivo
+    ansible.builtin.lineinfile:
+      path: /etc/exports
+      line: "{{var_nfs_export}}"
+      state: present
+    notify: reload_export
+
+  handlers:
+   - name: reload_export
+     command: exportfs -ra
+      
