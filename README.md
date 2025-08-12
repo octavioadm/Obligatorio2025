@@ -50,4 +50,4 @@ Ejecutar playbook hardening.yml desde el directorio "Obligatorio2025"
 
 ## Authors
 
-- [@octavio y Micaela](https://www.github.com/octavioadm/Obligatorio2025)
+- [@Octavio y Micaela](https://www.github.com/octavioadm/Obligatorio2025)
