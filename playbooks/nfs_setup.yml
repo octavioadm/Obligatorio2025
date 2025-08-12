@@ -1,49 +1,47 @@
 ---
-
-- name: Playbook para configurar servidor NFS en CentOS
+- name: playbook para configurar NFS en CentOS
   hosts: centos
   become: yes
 
   vars:
     var_nfs_shared: /var/nfs_shared
-    var_nfs_export: "/var/nfs_shared * (rw,sync,no_root_squash,no_subtree_check)"
+    var_nfs_export: "/var/nfs_shared *(rw,sync,no_root_squash,no_subtree_check)"
 
-  tasks: 
-
-  - name: Instalacion paquete NFS
-    ansible.builtin.dnf:
+  tasks:
+   - name: Instalacion paquete nfs
+     ansible.builtin.dnf:
       name: nfs-utils
       state: present
 
-  - name: Verificar servicio NFS habilitado e iniciado
-    ansible.builtin.systemd_service:
+   - name: Verificar servicio nfs iniciado y habilitado
+     ansible.builtin.systemd_service:
       name: nfs-server
-      enabled: true
       state: started
+      enabled: true
 
-  - name: Habilitar puerto 2049 en firewall
-    ansible.posix.firewalld:
-      port: 2049/tcp
-      permanent: true
-      state: enabled
-      immediate: true
+   - name: Habilitar puerto en el Firewall
+     ansible.posix.firewalld:
+       port: 2049/tcp
+       permanent: yes
+       state: enabled
+       immediate: yes
 
-  - name: Carpeta compartida
-    ansible.builtin.file:
-      path: "{{var_nfs_shared}}"
+   - name: Carpeta compartida
+     ansible.builtin.file:
+      path: "{{ var_nfs_shared }}"
       state: directory
       owner: nobody
       group: nobody
       mode: '0777'
 
-  - name: Garantiza que la linea de exportacion exista en el archivo
-    ansible.builtin.lineinfile:
+   - name: Garantiza que la linea de exportacion exista
+     ansible.builtin.lineinfile:
       path: /etc/exports
-      line: "{{var_nfs_export}}"
+      line: "{{ var_nfs_export }}"
       state: present
-    notify: reload_export
+     notify: reload_export
 
   handlers:
-   - name: reload_export
-     command: exportfs -ra
-      
+    - name: reload_export
+      command: exportfs -r
+
