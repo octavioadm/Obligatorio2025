@@ -2,7 +2,7 @@
 # Obligatorio 2025
 
 ## #Equipo Bastion Centos
-Primer paso, Instalar git
+Instalar git
 
 ```bash
   sudo dnf install git
@@ -16,7 +16,7 @@ Editar archivo inventory.ini
 modificando el valor de las variables ansible_host y ansible_user segun IP y usuario de equipo destino
 
 ```bash
-  vi Obligatorio2025/inventories/inventory.ini
+  sudo vi Obligatorio2025/inventories/inventory.ini
 ```
 
 Instalar Ansible Core
@@ -37,12 +37,12 @@ Crear clave publica / privada para conexion SSH
   ssh-copy-id + IP_Host_Destino
 ```
 
-Ejecutar playbook nfs_setup.yml desde el directorio Obligatorio2025
+Ejecutar playbook nfs_setup.yml desde el directorio "Obligatorio2025"
 ```bash
   ansible-playbook playbooks/nfs_setup.yml -K
 ```
 
-Ejecutar playbook hardening.yml desde el directorio Obligatorio2025
+Ejecutar playbook hardening.yml desde el directorio "Obligatorio2025"
 ```bash
   ansible-playbook playbooks/hardening.yml -K
 ```
